@@ -13,7 +13,10 @@
   <style>
     :root {
       --bg:#f7f7fb; --card:#fff; --text:#0f172a; --muted:#6b7280;
-      --border:#e5e7eb; --focus:#6366f1; --ring:rgba(99,102,241,.25); --radius:16px;
+      --border:#e5e7eb; --focus:#6366f1; --ring:rgba(99,102,241,.2); --radius:16px;
+      --tint:#eef2ff;           /* zarter Fokus-Hintergrund */
+      --accent:#f59e0b;         /* Orange */
+      --accent-bg:#fff7ed;      /* Orange sehr hell */
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
@@ -23,35 +26,44 @@
     .subtitle{color:var(--muted);font-size:14px;margin-bottom:20px}
 
     .nav{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-    .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:10px;
+    .btn{appearance:none;border:1px solid var(--border);background:#fff;border-radius:999px;
          padding:10px 14px;font-weight:600;cursor:pointer}
     .btn:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 4px var(--ring)}
-    .link{display:inline-block;text-decoration:none;color:inherit}
+    .link{text-decoration:none;color:inherit}
+
     .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
           box-shadow:0 1px 2px rgba(0,0,0,.03)}
     .card + .card{margin-top:16px}
-    .card-header{padding:16px 18px;border-bottom:1px solid var(--border);font-weight:600}
+    .card-header{padding:16px 18px;border-bottom:1px solid var(--border);font-weight:700}
     .card-body{padding:16px 18px}
 
     .grid{display:grid;gap:16px}
     @media (min-width:700px){
       .grid-cols-2{grid-template-columns:1fr 1fr}
       .grid-cols-3{grid-template-columns:repeat(3,1fr)}
+      .grid-cols-4{grid-template-columns:repeat(4,1fr)}
     }
 
-    label{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+    .field{padding:12px;border:1px solid var(--border);border-radius:14px;background:#fff}
+    .field--emph{background:var(--tint);border-color:#dfe3ff}
+    label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
     .hint{font-size:12px;color:var(--muted);margin-top:6px}
     input[type="text"],select{
-      width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#fff;font-size:16px;
+      width:100%;padding:12px;border-radius:12px;border:1px solid #d8dbef;background:#fff;font-size:16px;
       outline:none;transition:border-color .15s ease, box-shadow .15s ease
     }
+    .field--emph input,.field--emph select{background:#fff}
     input:focus,select:focus{border-color:var(--focus);box-shadow:0 0 0 4px var(--ring)}
 
     .tile{border:1px solid var(--border);border-radius:16px;padding:14px;background:#fff}
-    .tile .label{font-size:13px;color:var(--muted)}
-    .tile .value{margin-top:4px;font-size:24px;font-weight:700;letter-spacing:.2px}
-    .unit{font-weight:500;color:var(--muted);font-size:14px}
-    .fine{font-size:12px;color:var(--muted)}
+    .tile--kpi{border-color:#dfe3ff;background:#fafbff}
+    .tile--accent{border-color:var(--accent); background:var(--accent-bg)}
+    .tile .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .tile .value{margin-top:4px;font-size:26px;font-weight:600;letter-spacing:.2px}
+    .unit{font-weight:600;color:var(--muted);font-size:12px;opacity:.65}
+    .fine{font-size:12px;color:var(--muted);opacity:.7}
+
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap}
     .hide{display:none}
   </style>
 </head>
@@ -69,32 +81,32 @@
       <a class="btn link" href="#primer">Primer</a>
     </nav>
 
-    <!-- ===== Seiten ===== -->
+    <!-- ===== START ===== -->
     <section id="page-start" data-page="start" class="page">
       <section class="card">
         <div class="card-header">Eingaben</div>
         <div class="card-body grid grid-cols-2">
-          <div>
+          <div class="field field--emph">
             <label for="width">Fugenbreite (mm)</label>
             <input id="width" type="text" inputmode="decimal" placeholder="z. B. 20" />
             <div class="hint">Annahme: Fugentiefe = Fugenbreite.</div>
           </div>
-          <div>
+          <div class="field field--emph">
             <label for="length">Gesamtmeter der Fugen (m)</label>
             <input id="length" type="text" inputmode="decimal" placeholder="z. B. 150" />
           </div>
-          <div>
+          <div class="field field--emph">
             <label for="pkgSealant">Gebindegröße Dichtstoff</label>
             <select id="pkgSealant">
-              <option value="2.5">2,5 L</option>
-              <option value="4">4 L</option>
-              <option value="10" selected>10 L</option>
-              <option value="25">25 L</option>
+              <option value="2.5">2,5 l</option>
+              <option value="4">4 l</option>
+              <option value="10" selected>10 l</option>
+              <option value="25">25 l</option>
             </select>
           </div>
-          <div>
+          <div class="field">
             <label>Primer</label>
-            <div class="hint">Gebindegröße fest: 1 l · Verbrauch: 0,04 l/m</div>
+            <div class="hint">Gebindegröße fest: <strong>1 l</strong> · Verbrauch: <strong>0,04 l/m</strong></div>
           </div>
         </div>
       </section>
@@ -102,14 +114,15 @@
       <section class="card">
         <div class="card-header">Zusammenfassung – Gebinde & Reste</div>
         <div class="card-body grid grid-cols-2">
-          <div class="tile">
+          <div class="tile tile--kpi">
             <div class="label">Dichtstoff – Gesamt</div>
             <div class="value"><span id="s_total">–</span> <span class="unit">l</span></div>
             <div class="fine">A/B Verhältnis 10:1 (Volumen)</div>
           </div>
-          <div class="tile">
-            <div class="label">Primer – Gesamt (0,04 l/m)</div>
+          <div class="tile tile--kpi">
+            <div class="label">Primer – Gesamt</div>
             <div class="value"><span id="p_total">–</span> <span class="unit">l</span></div>
+            <div class="fine">Verbrauch 0,04 l/m</div>
           </div>
         </div>
         <div class="card-body grid grid-cols-2">
@@ -119,24 +132,24 @@
             <div class="fine">Rest: <span id="s_rest">–</span> <span class="unit">l</span></div>
           </div>
           <div class="tile">
-            <div class="label">Primer – volle Gebinde (1 l)</div>
+            <div class="label">Primer – volle Gebinde</div>
             <div class="value"><span id="p_pkgs">–</span> <span class="unit">stk</span></div>
             <div class="fine">Rest: <span id="p_rest">–</span> <span class="unit">l</span></div>
           </div>
         </div>
-        <div class="card-body">
+        <div class="card-body row-actions">
           <a class="btn link" href="#dichtstoff">→ Zur Dichtstoff-Mischung</a>
-          <a class="btn link" href="#primer" style="margin-left:8px">→ Zur Primer-Mischung</a>
+          <a class="btn link" href="#primer">→ Zur Primer-Mischung</a>
         </div>
       </section>
     </section>
 
-    <!-- Unterseite Dichtstoff -->
+    <!-- ===== DICHTSTOFF ===== -->
     <section id="page-dichtstoff" data-page="dichtstoff" class="page hide">
       <section class="card">
         <div class="card-header">Dichtstoff – Verbrauch & Gebinde</div>
         <div class="card-body grid grid-cols-3">
-          <div class="tile">
+          <div class="tile tile--kpi">
             <div class="label">Gesamt</div>
             <div class="value"><span id="sd_total">–</span> <span class="unit">l</span></div>
           </div>
@@ -149,31 +162,17 @@
             <div class="value"><span id="sd_rest">–</span> <span class="unit">l</span></div>
           </div>
         </div>
-        <div class="card-body grid grid-cols-2">
-          <div class="tile">
-            <div class="label">Rest Anteile (Volumen)</div>
-            <div class="value">A: <span id="sd_restA_l">–</span> <span class="unit">l</span> · B: <span id="sd_restB_l">–</span> <span class="unit">l</span></div>
-          </div>
-          <div class="tile">
-            <div class="label">Rest Gewichte</div>
-            <div class="value">A: <span id="sd_restA_kg">–</span> <span class="unit">kg</span> · B: <span id="sd_restB_kg">–</span> <span class="unit">kg</span></div>
-          </div>
-        </div>
       </section>
 
       <section class="card">
-        <div class="card-header">Eingewogene Masse A → benötigte B (Volumen-Verhältnis 10:1)</div>
-        <div class="card-body grid grid-cols-3">
-          <div>
+        <div class="card-header">Eingewogene Masse A → benötigte B (10:1 nach Volumen)</div>
+        <div class="card-body grid grid-cols-2">
+          <div class="field field--emph">
             <label for="sd_Ag">Komponente A (g)</label>
             <input id="sd_Ag" type="text" inputmode="decimal" placeholder="z. B. 1200" />
             <div class="hint">Gegeneinheit wird angezeigt.</div>
           </div>
-          <div class="tile">
-            <div class="label">A entspricht</div>
-            <div class="value"><span id="sd_A_l">–</span> <span class="unit">l</span></div>
-          </div>
-          <div class="tile">
+          <div class="tile tile--accent">
             <div class="label">Benötigt B</div>
             <div class="value"><span id="sd_B_g">–</span> <span class="unit">g</span></div>
             <div class="fine">entspricht <span id="sd_B_l">–</span> <span class="unit">l</span></div>
@@ -186,12 +185,12 @@
       </div>
     </section>
 
-    <!-- Unterseite Primer -->
+    <!-- ===== PRIMER ===== -->
     <section id="page-primer" data-page="primer" class="page hide">
       <section class="card">
         <div class="card-header">Primer – Bedarf & Gebinde</div>
         <div class="card-body grid grid-cols-3">
-          <div class="tile">
+          <div class="tile tile--kpi">
             <div class="label">Gesamt (0,04 l/m)</div>
             <div class="value"><span id="pp_total">–</span> <span class="unit">l</span></div>
           </div>
@@ -207,30 +206,26 @@
       </section>
 
       <section class="card">
-        <div class="card-header">Primer-Typ & Anmischung (Verhältnis nach Gewicht)</div>
+        <div class="card-header">Primer-Typ & Anmischung (Gewichtsteile)</div>
         <div class="card-body grid grid-cols-2">
-          <div>
+          <div class="field field--emph">
             <label for="primerType">Primer-Typ</label>
             <select id="primerType">
               <option value="CP-P" selected>CP-P (4:1)</option>
               <option value="CP-S">CP-S (1:1)</option>
               <option value="CP-A">CP-A (7:4)</option>
             </select>
-            <div class="hint">Verhältnis A:B nach Gewicht</div>
+            <div class="hint">Verhältnis A:B nach <strong>Gewicht</strong>.</div>
           </div>
-          <div>
+          <div class="field field--emph">
             <label for="pp_Ag">Eingewogene Masse A (g)</label>
             <input id="pp_Ag" type="text" inputmode="decimal" placeholder="z. B. 120" />
-            <div class="hint">Gegeneinheit (l) wird angezeigt</div>
+            <div class="hint">Gegeneinheit (l) wird angezeigt.</div>
           </div>
         </div>
-        <div class="card-body grid grid-cols-3">
-          <div class="tile">
-            <div class="label">A entspricht</div>
-            <div class="value"><span id="pp_A_l">–</span> <span class="unit">l</span></div>
-          </div>
-          <div class="tile">
-            <div class="label">Benötigt B (g)</div>
+        <div class="card-body grid grid-cols-2">
+          <div class="tile tile--accent">
+            <div class="label">Benötigt B</div>
             <div class="value"><span id="pp_B_g">–</span> <span class="unit">g</span></div>
             <div class="fine">entspricht <span id="pp_B_l">–</span> <span class="unit">l</span></div>
           </div>
@@ -253,7 +248,6 @@
     const DENS_A = 1.6, DENS_B = 1.72;              // kg/l Dichtstoff
     const PRIMER_CONS_PER_M = 0.04;                 // l pro m
     const PRIMER_PKG = 1;                           // l
-
     const PRIMERS = {
       "CP-P": { partsA:4, partsB:1, densA:0.96,  densB:0.92  }, // kg/l
       "CP-S": { partsA:1, partsB:1, densA:0.956, densB:0.811 },
@@ -286,15 +280,13 @@
 
     /* Dichtstoff Unterseite */
     const sd_total = $('#sd_total'), sd_pkgs = $('#sd_pkgs'), sd_rest = $('#sd_rest');
-    const sd_restA_l = $('#sd_restA_l'), sd_restB_l = $('#sd_restB_l');
-    const sd_restA_kg = $('#sd_restA_kg'), sd_restB_kg = $('#sd_restB_kg');
-    const sd_Ag = $('#sd_Ag'), sd_A_l = $('#sd_A_l'), sd_B_g = $('#sd_B_g'), sd_B_l = $('#sd_B_l');
+    const sd_Ag = $('#sd_Ag'), sd_B_g = $('#sd_B_g'), sd_B_l = $('#sd_B_l');
 
     /* Primer Unterseite */
     const pp_total = $('#pp_total'), pp_pkgs = $('#pp_pkgs'), pp_rest = $('#pp_rest');
-    const primerTypeEl = $('#primerType'), pp_Ag = $('#pp_Ag'), pp_A_l = $('#pp_A_l'), pp_B_g = $('#pp_B_g'), pp_B_l = $('#pp_B_l'), pp_ratio = $('#pp_ratio');
+    const primerTypeEl = $('#primerType'), pp_Ag = $('#pp_Ag'), pp_B_g = $('#pp_B_g'), pp_B_l = $('#pp_B_l'), pp_ratio = $('#pp_ratio');
 
-    /* Kernberechnungen (gemeinsam) */
+    /* Kernberechnungen */
     function computeSealantBase(){
       const w = parseLocale(widthEl.value);
       const L = parseLocale(lengthEl.value);
@@ -333,22 +325,16 @@
       sd_pkgs.textContent  = Number.isFinite(s.pkgs) ? s.pkgs : '–';
       sd_rest.textContent  = nf(s.rest);
 
-      const rA_l = s.rest * RATIO_A, rB_l = s.rest * RATIO_B;
-      const rA_kg = rA_l * DENS_A,   rB_kg = rB_l * DENS_B;
-      sd_restA_l.textContent = nf(rA_l); sd_restB_l.textContent = nf(rB_l);
-      sd_restA_kg.textContent = nf(rA_kg); sd_restB_kg.textContent = nf(rB_kg);
-
       // Eingewogene Masse A → benötigte Masse B (10:1 nach Volumen)
       const Ag = parseLocale(sd_Ag.value);
       if (Ag>0){
-        const A_l = Ag/1000 / DENS_A;                 // g → kg → l
-        const B_l = A_l * (1/10);                     // 10:1 Volumen
-        const Bg  = B_l * DENS_B * 1000;              // l → kg → g
-        sd_A_l.textContent = nf(A_l);
+        const A_l = Ag/1000 / DENS_A;   // g → kg → l
+        const B_l = A_l * (1/10);       // 10:1 Volumen
+        const Bg  = B_l * DENS_B * 1000;
         sd_B_l.textContent = nf(B_l);
         sd_B_g.textContent = nf(Bg);
       } else {
-        sd_A_l.textContent = sd_B_l.textContent = sd_B_g.textContent = '–';
+        sd_B_l.textContent = sd_B_g.textContent = '–';
       }
     }
 
@@ -365,14 +351,12 @@
 
       const Ag = parseLocale(pp_Ag.value);
       if (Ag>0){
-        const A_l = Ag/1000 / p.densA;
-        const Bg  = Ag * (p.partsB/p.partsA);         // Verhältnis nach Gewicht
+        const Bg  = Ag * (p.partsB/p.partsA); // Verhältnis nach Gewicht
         const B_l = Bg/1000 / p.densB;
-        pp_A_l.textContent = nf(A_l);
         pp_B_g.textContent = nf(Bg);
         pp_B_l.textContent = nf(B_l);
       } else {
-        pp_A_l.textContent = pp_B_g.textContent = pp_B_l.textContent = '–';
+        pp_B_g.textContent = pp_B_l.textContent = '–';
       }
     }
 
@@ -381,7 +365,6 @@
       document.querySelectorAll('.page').forEach(s=>s.classList.add('hide'));
       const el = document.querySelector(`#page-${page}`) || document.querySelector('#page-start');
       el.classList.remove('hide');
-      // Bei jedem Seitenwechsel neu rendern
       renderStart(); renderSealantPage(); renderPrimerPage();
     }
     function onHash(){ const hash = location.hash.replace('#','') || 'start'; show(hash); }
