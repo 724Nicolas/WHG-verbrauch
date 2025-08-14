@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#0f172a">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Verbrauchsrechner Polysulfid-Fugenmasse (A/B)</title>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --focus: #6366f1;
+      --ring: rgba(99, 102, 241, 0.25);
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: var(--bg); color: var(--text);
+      line-height: 1.4;
+    }
+    .container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+    h1 { font-size: 28px; margin: 0 0 6px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+    .card + .card { margin-top: 16px; }
+    .card-header { padding: 16px 18px; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .card-body { padding: 16px 18px; }
+
+    .grid { display: grid; gap: 16px; }
+    @media (min-width: 700px) { .grid-cols-2 { grid-template-columns: 1fr 1fr; } .grid-cols-3 { grid-template-columns: repeat(3, 1fr); } }
+
+    label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+    input[type="text"], input[type="number"], select {
+      width: 100%; padding: 12px 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: #fff; font-size: 16px; outline: none; transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    input:focus, select:focus { border-color: var(--focus); box-shadow: 0 0 0 4px var(--ring); }
+
+    .tile { border: 1px solid var(--border); border-radius: 16px; padding: 14px; background: #fff; }
+    .tile .label { font-size: 13px; color: var(--muted); }
+    .tile .value { margin-top: 4px; font-size: 24px; font-weight: 700; letter-spacing: 0.2px; }
+    .unit { font-weight: 500; color: var(--muted); font-size: 14px; }
+
+    .footer { font-size: 12px; color: var(--muted); margin-top: 12px; }
+    .row { display: flex; gap: 10px; align-items: center; }
+    .small { font-size: 12px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Verbrauchsrechner Polysulfid-Fugenmasse</h1>
+      <p class="subtitle">Annahme: <strong>Fugentiefe = Fugenbreite</strong>. Ausgabe in Litern inkl. Aufteilung auf A/B und Gebindeberechnung.</p>
+    </header>
+
+    <section class="card">
+      <div class="card-header">Eingaben</div>
+      <div class="card-body grid grid-cols-2">
+        <div>
+          <label for="width">Fugenbreite (mm)</label>
+          <input id="width" type="text" inputmode="decimal" placeholder="z. B. 20" />
+          <div class="hint">Fugentiefe = Fugenbreite.</div>
+        </div>
+        <div>
+          <label for="length">Gesamtmeter der Fugen (m)</label>
+          <input id="length" type="text" inputmode="decimal" placeholder="z. B. 150" />
+          <div class="hint">Summe aller Fugenlängen in Metern.</div>
+        </div>
+        <div>
+          <label for="packageSize">Gebindegröße</label>
+          <select id="packageSize">
+            <option value="2.5">2,5 L</option>
+            <option value="4">4 L</option>
+            <option value="10" selected>10 L</option>
+            <option value="25">25 L</option>
+          </select>
+        </div>
+        <div class="row">
+          <label class="small">Rundung</label>
+          <input id="decimals" type="number" min="0" max="4" value="2" style="width:80px" />
+          <span class="small">Nachkommastellen</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">Ergebnis</div>
+      <div class="card-body grid grid-cols-3">
+        <div class="tile">
+          <div class="label">Gesamtvolumen</div>
+          <div class="value"><span id="vol">–</span> <span class="unit">L</span></div>
+        </div>
+        <div class="tile">
+          <div class="label">Komponente A (10/11)</div>
+          <div class="value"><span id="aLiters">–</span> <span class="unit">L</span></div>
+        </div>
+        <div class="tile">
+          <div class="label">Komponente B (1/11)</div>
+          <div class="value"><span id="bLiters">–</span> <span class="unit">L</span></div>
+        </div>
+      </div>
+      <div class="card-body grid grid-cols-2">
+        <div class="tile">
+          <div class="label">Volle Gebinde</div>
+          <div class="value"><span id="fullPackages">–</span> <span class="unit">Stk</span></div>
+        </div>
+        <div class="tile">
+          <div class="label">Restmenge</div>
+          <div class="value"><span id="restLiters">–</span> <span class="unit">L</span></div>
+        </div>
+      </div>
+      <div class="card-body grid grid-cols-2">
+        <div class="tile">
+          <div class="label">Rest A (kg)</div>
+          <div class="value"><span id="restAkg">–</span> <span class="unit">kg</span></div>
+        </div>
+        <div class="tile">
+          <div class="label">Rest B (kg)</div>
+          <div class="value"><span id="restBkg">–</span> <span class="unit">kg</span></div>
+        </div>
+      </div>
+      <div class="card-body footer">
+        Dichten: A = 1,6 kg/L, B = 1,72 kg/L. Mischungsverhältnis fix: A = 10/11 · V, B = 1/11 · V.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const RATIO_A = 10 / 11;
+    const RATIO_B = 1 / 11;
+    const DENSITY_A = 1.6;   // kg/L
+    const DENSITY_B = 1.72;  // kg/L
+
+    const $ = (sel) => document.querySelector(sel);
+    const widthEl = $('#width');
+    const lengthEl = $('#length');
+    const packageEl = $('#packageSize');
+    const decimalsEl = $('#decimals');
+    const volEl = $('#vol');
+    const aEl = $('#aLiters');
+    const bEl = $('#bLiters');
+    const fullPackagesEl = $('#fullPackages');
+    const restLitersEl = $('#restLiters');
+    const restAkgEl = $('#restAkg');
+    const restBkgEl = $('#restBkg');
+
+    const nf = (n, dec=2) => {
+      try { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: dec, maximumFractionDigits: dec }).format(n); }
+      catch { return Number(n).toFixed(dec); }
+    };
+
+    const parseLocale = (str) => {
+      if (!str) return NaN;
+      const normalized = String(str).replace(/\\s/g, '').replace(/\\./g, '').replace(/,/g, '.');
+      const n = Number(normalized);
+      return Number.isFinite(n) ? n : NaN;
+    };
+
+    function compute() {
+      const w = parseLocale(widthEl.value);
+      const L = parseLocale(lengthEl.value);
+      const pkgSize = parseFloat(packageEl.value);
+      const dec = Math.min(4, Math.max(0, parseInt(decimalsEl.value || '2', 10)));
+
+      if (!(w > 0) || !(L > 0)) {
+        [volEl, aEl, bEl, fullPackagesEl, restLitersEl, restAkgEl, restBkgEl].forEach(el => el.textContent = '–');
+        return;
+      }
+
+      const volumeL = (w * w * L) / 1000;
+      const a = volumeL * RATIO_A;
+      const b = volumeL * RATIO_B;
+
+      const fullPkgs = Math.floor(volumeL / pkgSize);
+      const rest = volumeL - fullPkgs * pkgSize;
+      const restA = rest * RATIO_A;
+      const restB = rest * RATIO_B;
+
+      const restAkg = restA * DENSITY_A;
+      const restBkg = restB * DENSITY_B;
+
+      volEl.textContent = nf(volumeL, dec);
+      aEl.textContent = nf(a, dec);
+      bEl.textContent = nf(b, dec);
+      fullPackagesEl.textContent = fullPkgs;
+      restLitersEl.textContent = nf(rest, dec);
+      restAkgEl.textContent = nf(restAkg, dec);
+      restBkgEl.textContent = nf(restBkg, dec);
+    }
+
+    ['input', 'change'].forEach(evt => {
+      widthEl.addEventListener(evt, compute);
+      lengthEl.addEventListener(evt, compute);
+      packageEl.addEventListener(evt, compute);
+      decimalsEl.addEventListener(evt, compute);
+    });
+
+    widthEl.value = '20';
+    lengthEl.value = '150';
+    compute();
+  </script>
+</body>
+</html>
