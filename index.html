@@ -14,9 +14,8 @@
     :root {
       --bg:#f7f7fb; --card:#fff; --text:#0f172a; --muted:#6b7280;
       --border:#e5e7eb; --focus:#6366f1; --ring:rgba(99,102,241,.2); --radius:16px;
-      --tint:#eef2ff;           /* zarter Fokus-Hintergrund */
-      --accent:#f59e0b;         /* Orange */
-      --accent-bg:#fff7ed;      /* Orange sehr hell */
+      --tint:#eef2ff;
+      --accent:#f59e0b; --accent-bg:#fff7ed;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial,"Noto Sans";
@@ -165,17 +164,36 @@
       </section>
 
       <section class="card">
-        <div class="card-header">Eingewogene Masse A → benötigte B (10:1 nach Volumen)</div>
+        <div class="card-header">
+          <div>System & Mischung</div>
+        </div>
         <div class="card-body grid grid-cols-2">
+          <!-- NEU: Dichtstoff-System Auswahl -->
+          <div class="field field--emph">
+            <label for="sd_type">Dichtstoff-System</label>
+            <select id="sd_type">
+              <option value="standard" selected>Standard 10:1 (nach Volumen)</option>
+              <option value="tc30g">TC30G 5:1 (nach Gewicht)</option>
+            </select>
+            <div class="hint">Berechnung von „Benötigt B“ richtet sich nach Auswahl.</div>
+          </div>
+
           <div class="field field--emph">
             <label for="sd_Ag">Komponente A (g)</label>
             <input id="sd_Ag" type="text" inputmode="decimal" placeholder="z. B. 1200" />
             <div class="hint">Gegeneinheit wird angezeigt.</div>
           </div>
+        </div>
+
+        <div class="card-body grid grid-cols-2">
           <div class="tile tile--accent">
             <div class="label">Benötigt B</div>
             <div class="value"><span id="sd_B_g">–</span> <span class="unit">g</span></div>
             <div class="fine">entspricht <span id="sd_B_l">–</span> <span class="unit">l</span></div>
+          </div>
+          <div class="tile">
+            <div class="label">Verhältnis</div>
+            <div class="value"><span id="sd_ratio">10 : 1 (Volumen)</span></div>
           </div>
         </div>
       </section>
@@ -214,13 +232,16 @@
               <option value="CP-P" selected>CP-P (4:1)</option>
               <option value="CP-S">CP-S (1:1)</option>
               <option value="CP-A">CP-A (7:4)</option>
+              <!-- NEU -->
+              <option value="U12G">U12G (100:66)</option>
+              <option value="ZM">Primer ZM (94:6)</option>
             </select>
             <div class="hint">Verhältnis A:B nach <strong>Gewicht</strong>.</div>
           </div>
           <div class="field field--emph">
             <label for="pp_Ag">Eingewogene Masse A (g)</label>
             <input id="pp_Ag" type="text" inputmode="decimal" placeholder="z. B. 120" />
-            <div class="hint">Gegeneinheit (l) wird angezeigt.</div>
+            <div class="hint">Gegeneinheit (l) wird angezeigt (falls Dichten vorhanden).</div>
           </div>
         </div>
         <div class="card-body grid grid-cols-2">
@@ -243,15 +264,26 @@
   </main>
 
   <script>
-    /* Konstanten */
-    const RATIO_A = 10/11, RATIO_B = 1/11;          // Dichtstoff Volumenverhältnis
-    const DENS_A = 1.6, DENS_B = 1.72;              // kg/l Dichtstoff
+    /* Konstanten für Standard-Dichtstoff */
+    const RATIO_A = 10/11, RATIO_B = 1/11;          // Volumenverhältnis Standard
+    const DENS_A = 1.6, DENS_B = 1.72;              // kg/l Dichtstoff (angenommen konstant)
     const PRIMER_CONS_PER_M = 0.04;                 // l pro m
     const PRIMER_PKG = 1;                           // l
+
+    /* Dichtstoff-Systeme */
+    const SEALANT_TYPES = {
+      standard: { mode: 'volume', partsA: 10, partsB: 1, label: '10 : 1 (Volumen)' },
+      tc30g:    { mode: 'mass',   partsA: 5,  partsB: 1, label: '5 : 1 (Gewicht)' }
+    };
+
+    /* Primer-Daten (Gewichtsteile) */
     const PRIMERS = {
-      "CP-P": { partsA:4, partsB:1, densA:0.96,  densB:0.92  }, // kg/l
-      "CP-S": { partsA:1, partsB:1, densA:0.956, densB:0.811 },
-      "CP-A": { partsA:7, partsB:4, densA:1.13,  densB:1.03  }
+      "CP-P": { partsA:4,   partsB:1,  densA:0.96,  densB:0.92  },  // kg/l
+      "CP-S": { partsA:1,   partsB:1,  densA:0.956, densB:0.811 },
+      "CP-A": { partsA:7,   partsB:4,  densA:1.13,  densB:1.03  },
+      // NEU – Dichten unbekannt ⇒ Literanzeige „–“
+      "U12G": { partsA:100, partsB:66, densA:null,  densB:null  },
+      "ZM":   { partsA:94,  partsB:6,  densA:null,  densB:null  }
     };
 
     /* Helpers */
@@ -280,6 +312,7 @@
 
     /* Dichtstoff Unterseite */
     const sd_total = $('#sd_total'), sd_pkgs = $('#sd_pkgs'), sd_rest = $('#sd_rest');
+    const sd_typeEl = $('#sd_type'), sd_ratio = $('#sd_ratio');
     const sd_Ag = $('#sd_Ag'), sd_B_g = $('#sd_B_g'), sd_B_l = $('#sd_B_l');
 
     /* Primer Unterseite */
@@ -325,16 +358,27 @@
       sd_pkgs.textContent  = Number.isFinite(s.pkgs) ? s.pkgs : '–';
       sd_rest.textContent  = nf(s.rest);
 
-      // Eingewogene Masse A → benötigte Masse B (10:1 nach Volumen)
+      const stype = SEALANT_TYPES[sd_typeEl.value] || SEALANT_TYPES.standard;
+      sd_ratio.textContent = stype.label;
+
       const Ag = parseLocale(sd_Ag.value);
       if (Ag>0){
-        const A_l = Ag/1000 / DENS_A;   // g → kg → l
-        const B_l = A_l * (1/10);       // 10:1 Volumen
-        const Bg  = B_l * DENS_B * 1000;
-        sd_B_l.textContent = nf(B_l);
+        let Bg, Bl;
+        if (stype.mode === 'volume'){
+          // Standard: Volumenverhältnis 10:1
+          const A_l = Ag/1000 / DENS_A;         // g → kg → l
+          const B_l = A_l * (stype.partsB / stype.partsA);
+          Bl = B_l;
+          Bg = B_l * DENS_B * 1000;             // l → kg → g
+        } else {
+          // TC30G: Gewichtsverhältnis 5:1
+          Bg = Ag * (stype.partsB / stype.partsA);
+          Bl = Bg / 1000 / DENS_B;              // g → kg → l (Dichte B)
+        }
         sd_B_g.textContent = nf(Bg);
+        sd_B_l.textContent = nf(Bl);
       } else {
-        sd_B_l.textContent = sd_B_g.textContent = '–';
+        sd_B_g.textContent = sd_B_l.textContent = '–';
       }
     }
 
@@ -352,9 +396,13 @@
       const Ag = parseLocale(pp_Ag.value);
       if (Ag>0){
         const Bg  = Ag * (p.partsB/p.partsA); // Verhältnis nach Gewicht
-        const B_l = Bg/1000 / p.densB;
         pp_B_g.textContent = nf(Bg);
-        pp_B_l.textContent = nf(B_l);
+        if (Number.isFinite(p.densB)) {
+          const B_l = Bg/1000 / p.densB;
+          pp_B_l.textContent = nf(B_l);
+        } else {
+          pp_B_l.textContent = '–';
+        }
       } else {
         pp_B_g.textContent = pp_B_l.textContent = '–';
       }
@@ -375,6 +423,7 @@
       widthEl.addEventListener(evt, ()=>{renderStart();renderSealantPage();});
       lengthEl.addEventListener(evt, ()=>{renderStart();renderSealantPage();renderPrimerPage();});
       pkgSealantEl.addEventListener(evt, ()=>{renderStart();renderSealantPage();});
+      sd_typeEl.addEventListener(evt, renderSealantPage);
       sd_Ag.addEventListener(evt, renderSealantPage);
       primerTypeEl.addEventListener(evt, renderPrimerPage);
       pp_Ag.addEventListener(evt, renderPrimerPage);
